@@ -1,62 +1,67 @@
 package com.mygdx.game.view;
 
+import com.badlogic.gdx.Game; // CAMBIADO
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
-import com.mygdx.game.CastlevaniaGame;
 import com.mygdx.game.player.Player;
-import com.mygdx.game.player.PlayerController;
 import com.mygdx.game.controller.GameController;
 
 public class BossFightScreen implements Screen {
 
-    private final CastlevaniaGame game;
+    private final Game game; // CAMBIADO
     private SpriteBatch batch;
-
     private Texture bg;
 
     private Player player;
-    private PlayerController input;
     private GameController controller;
 
-    public BossFightScreen(CastlevaniaGame game) {
+    private float timer = 0;
+
+    public BossFightScreen(Game game) { // CAMBIADO
         this.game = game;
     }
 
     @Override
     public void show() {
-
         batch = new SpriteBatch();
-        bg = new Texture("altar_dracula.png");
+        bg = new Texture("boss_room.png"); // ✓ Existe en assets
 
         player = new Player(90, 80);
-        player.enableCombat();
+        // player.enableCombat();
 
-        input = new PlayerController(player);
         controller = new GameController(player);
 
-        controller.getLevelManager().setLevel(5);
-        controller.spawnDraculaPhase2();
+        // controller.spawnDraculaPhase2();
     }
 
     @Override
     public void render(float delta) {
+        if (player != null) player.update(delta);
+        // if (controller != null) controller.update(delta);
 
-        input.update(delta);
-        player.update(delta);
-        controller.update(delta);
+        timer += delta;
 
-        if (controller.getLevelManager().isBossDefeated()) {
+        batch.begin();
+        if (bg != null) {
+            batch.draw(bg, 0, 0);
+        }
+
+        // if (controller != null) controller.render(batch);
+        if (player != null) player.render(batch);
+
+        // Mostrar temporizador
+        batch.draw(new Texture("health_bar.png"), 50, 650, 200, 30); // ✓ Existe
+
+        batch.end();
+
+        // Victoria temporal después de 10 segundos
+        // if (controller != null && controller.getLevelManager() != null &&
+        //     controller.getLevelManager().isBossDefeated()) {
+        if (timer > 10.0f) {
             game.setScreen(new WinScreen(game));
             dispose();
         }
-
-        batch.begin();
-        batch.draw(bg, 0, 0);
-        controller.render(batch);
-        player.render(batch);
-        batch.end();
     }
 
     @Override public void resize(int w, int h) {}
@@ -66,9 +71,9 @@ public class BossFightScreen implements Screen {
 
     @Override
     public void dispose() {
-        batch.dispose();
-        bg.dispose();
-        player.dispose();
-        controller.dispose();
+        if (batch != null) batch.dispose();
+        if (bg != null) bg.dispose();
+        // if (player != null) player.dispose();
+        // if (controller != null) controller.dispose();
     }
 }

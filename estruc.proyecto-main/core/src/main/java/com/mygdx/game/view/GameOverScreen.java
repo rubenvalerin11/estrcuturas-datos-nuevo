@@ -1,47 +1,86 @@
 package com.mygdx.game.view;
 
-import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Game; // CAMBIADO
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class GameOverScreen implements Screen {
 
-    private final Game game;
-    private Texture background;
+    private final Game game; // CAMBIADO
+    private Stage stage;
     private SpriteBatch batch;
+    private Texture gameOverTexture;
 
-    public GameOverScreen(Game game) {
+    public GameOverScreen(Game game) { // CAMBIADO
         this.game = game;
-        batch = new SpriteBatch();
-        background = new Texture("gameover.png");
+        this.batch = new SpriteBatch();
+        this.gameOverTexture = new Texture("gameover.png"); // ✓ Existe (gameover)
+
+        stage = new Stage(new ScreenViewport());
+        Gdx.input.setInputProcessor(stage);
+
+        createUI();
+    }
+
+    private void createUI() {
+        Table table = new Table();
+        table.setFillParent(true);
+        stage.addActor(table);
+
+        Skin skin = new Skin();
+        TextButton.TextButtonStyle buttonStyle = new TextButton.TextButtonStyle();
+        buttonStyle.font = new com.badlogic.gdx.graphics.g2d.BitmapFont();
+        skin.add("default", buttonStyle);
+
+        TextButton menuButton = new TextButton("MENÚ PRINCIPAL", skin);
+        TextButton exitButton = new TextButton("SALIR", skin);
+
+        menuButton.addListener(e -> {
+            game.setScreen(new MenuScreen(game));
+            dispose();
+            return true;
+        });
+
+        exitButton.addListener(e -> {
+            Gdx.app.exit();
+            return true;
+        });
+
+        table.add(menuButton).padBottom(20).row();
+        table.add(exitButton).padBottom(20).row();
     }
 
     @Override
     public void render(float delta) {
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            game.setScreen(new MenuScreen(game));
-        }
-
-        Gdx.gl.glClearColor(0,0,0,1);
+        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
-        batch.draw(background, 0, 0, 960, 640);
+        if (gameOverTexture != null) {
+            batch.draw(gameOverTexture, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        }
         batch.end();
+
+        stage.act(delta);
+        stage.draw();
     }
 
-    @Override public void show() {}
-    @Override public void resize(int w, int h) {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+    @Override public void show() { Gdx.input.setInputProcessor(stage); }
+    @Override public void resize(int width, int height) { stage.getViewport().update(width, height, true); }
+    @Override public void pause() { }
+    @Override public void resume() { }
+    @Override public void hide() { }
     @Override public void dispose() {
-        batch.dispose();
-        background.dispose();
+        if (stage != null) stage.dispose();
+        if (batch != null) batch.dispose();
+        if (gameOverTexture != null) gameOverTexture.dispose();
     }
 }

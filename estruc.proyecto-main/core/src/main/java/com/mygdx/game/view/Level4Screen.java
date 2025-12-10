@@ -1,17 +1,16 @@
 package com.mygdx.game.view;
 
+import com.badlogic.gdx.Game; // CAMBIADO
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
-import com.mygdx.game.CastlevaniaGame;
 import com.mygdx.game.player.Player;
 import com.mygdx.game.player.PlayerController;
 import com.mygdx.game.controller.GameController;
 
 public class Level4Screen implements Screen {
 
-    private final CastlevaniaGame game;
+    private final Game game; // CAMBIADO
     private SpriteBatch batch;
 
     private Texture bg;
@@ -20,42 +19,50 @@ public class Level4Screen implements Screen {
     private PlayerController input;
     private GameController controller;
 
-    public Level4Screen(CastlevaniaGame game) {
+    private float timer = 0;
+
+    public Level4Screen(Game game) { // CAMBIADO
         this.game = game;
     }
 
     @Override
     public void show() {
-
         batch = new SpriteBatch();
-        bg = new Texture("altar_dracula.png");
+        bg = new Texture("altar_dracula.png"); // ✓ Existe en assets
 
         player = new Player(90, 80);
-        player.enableCombat();
+        // player.enableCombat();
 
         input = new PlayerController(player);
         controller = new GameController(player);
 
-        controller.getLevelManager().setLevel(4);
-        controller.spawnDraculaPhase1();
+        // if (controller.getLevelManager() != null) {
+        //     controller.getLevelManager().setLevel(4);
+        // }
+        // controller.spawnDraculaPhase1();
     }
 
     @Override
     public void render(float delta) {
+        // if (input != null) input.update(delta);
+        if (player != null) player.update(delta);
+        // if (controller != null) controller.update(delta);
 
-        input.update(delta);
-        player.update(delta);
-        controller.update(delta);
+        timer += delta;
 
-        if (controller.getLevelManager().isBossDefeated()) {
+        // if (controller != null && controller.getLevelManager() != null &&
+        //     controller.getLevelManager().isBossDefeated()) {
+        if (timer > 6.0f) { // Temporal: después de 6 segundos
             game.setScreen(new BossFightScreen(game));
             dispose();
         }
 
         batch.begin();
-        batch.draw(bg, 0, 0);
-        controller.render(batch);
-        player.render(batch);
+        if (bg != null) {
+            batch.draw(bg, 0, 0);
+        }
+        // if (controller != null) controller.render(batch);
+        if (player != null) player.render(batch);
         batch.end();
     }
 
@@ -66,9 +73,9 @@ public class Level4Screen implements Screen {
 
     @Override
     public void dispose() {
-        batch.dispose();
-        bg.dispose();
-        player.dispose();
-        controller.dispose();
+        if (batch != null) batch.dispose();
+        if (bg != null) bg.dispose();
+        // if (player != null) player.dispose();
+        // if (controller != null) controller.dispose();
     }
 }

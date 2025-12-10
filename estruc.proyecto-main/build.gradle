@@ -1,6 +1,46 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    google()
+  }
+}
+
 allprojects {
-    repositories {
-        mavenCentral()
-        google()
-    }
+  apply plugin: "eclipse"
+  apply plugin: "idea"
+
+  version = '1.0'
+  ext {
+    appName = "Castlevania SOTN"
+  }
+
+  repositories {
+    mavenCentral()
+    google()
+  }
+}
+
+// Configurar Java 8 para cada subproyecto
+subprojects {
+  apply plugin: "java-library"
+
+  // Configuración de Java
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+
+  compileJava {
+    options.encoding = 'UTF-8'
+  }
+}
+
+project(":core") {
+  dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+  }
+}
+
+project(":lwjgl3") {
+  dependencies {
+    implementation project(":core")
+  }
 }

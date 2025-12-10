@@ -3,26 +3,19 @@ package com.mygdx.game.model;
 import com.mygdx.game.estructuras.ListaEnlazada;
 
 public class Inventario {
-
     private ListaEnlazada<Item> items;
 
     public Inventario() {
-        items = new ListaEnlazada<>();
+        items = new ListaEnlazada<>(); // Debe usar agregar() no add()
     }
 
     public void agregarItem(Item item) {
-        items.agregar(item);
+        items.agregar(item); // ¡agregar() no add()!
     }
 
-    public Item buscarItem(String nombre) {
-        for (int i = 0; i < items.size(); i++) {
-            Item it = items.obtener(i);
-            if (it.getNombre().equals(nombre)) return it;
-        }
-        return null;
+    public Item obtenerItem(int indice) {
+        return items.obtener(indice); // ¡obtener() no get()!
     }
 
-    public ListaEnlazada<Item> obtenerTodos() {
-        return items;
-    }
+    // Resto del código...
 }

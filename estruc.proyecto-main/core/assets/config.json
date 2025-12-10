@@ -1,0 +1,16 @@
+﻿{
+  "title": "Castlevania: Symphony of the Night",
+  "width": 800,
+  "height": 600,
+  "fullscreen": false,
+  "vsync": true,
+  "textures": {
+    "player": "alucarddepie.png",
+    "enemy": "draculadepie.png",
+    "background": "Level1_bg.png",
+    "menu": "Menuinicio.png",
+    "gameover": "gameover.png",
+    "win": "winpantalla.png",
+    "pause": "Pausscreen.png"
+  }
+}

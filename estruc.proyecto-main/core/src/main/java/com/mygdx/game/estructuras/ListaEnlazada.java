@@ -2,42 +2,76 @@ package com.mygdx.game.estructuras;
 
 public class ListaEnlazada<T> {
 
-    private Nodo<T> cabeza;
-    private int size;
+    private class Nodo {
+        T dato;
+        Nodo siguiente;
 
-    public void agregar(T dato) {
-        Nodo<T> nuevo = new Nodo<>(dato);
+        Nodo(T dato) {
+            this.dato = dato;
+            this.siguiente = null;
+        }
+    }
 
+    private Nodo cabeza;
+    private int tamaño;
+
+    public ListaEnlazada() {
+        cabeza = null;
+        tamaño = 0;
+    }
+
+    // MÉTODO agregar (para GameStats e Inventario)
+    public void agregar(T elemento) {
+        Nodo nuevo = new Nodo(elemento);
         if (cabeza == null) {
             cabeza = nuevo;
         } else {
-            Nodo<T> actual = cabeza;
-            while (actual.sig != null) actual = actual.sig;
-            actual.sig = nuevo;
+            Nodo actual = cabeza;
+            while (actual.siguiente != null) {
+                actual = actual.siguiente;
+            }
+            actual.siguiente = nuevo;
         }
-        size++;
+        tamaño++;
     }
 
-    public T obtener(int index) {
-        if (index < 0 || index >= size) throw new IndexOutOfBoundsException();
-
-        Nodo<T> actual = cabeza;
-        for (int i = 0; i < index; i++) actual = actual.sig;
-
-        return actual.valor;
+    // MÉTODO add (alias de agregar para StatsManager)
+    public void add(T elemento) {
+        agregar(elemento);
     }
 
-    public void eliminar(int index) {
-        if (index < 0 || index >= size) throw new IndexOutOfBoundsException();
-
-        if (index == 0) cabeza = cabeza.sig;
-        else {
-            Nodo<T> actual = cabeza;
-            for (int i = 0; i < index - 1; i++) actual = actual.sig;
-            actual.sig = actual.sig.sig;
+    // MÉTODO obtener (para Inventario)
+    public T obtener(int indice) {
+        if (indice < 0 || indice >= tamaño) {
+            throw new IndexOutOfBoundsException("Índice: " + indice + ", Tamaño: " + tamaño);
         }
-        size--;
+
+        Nodo actual = cabeza;
+        for (int i = 0; i < indice; i++) {
+            actual = actual.siguiente;
+        }
+        return actual.dato;
     }
 
-    public int size() { return size; }
+    // MÉTODO tamaño
+    public int tamaño() {
+        return tamaño;
+    }
+
+    // MÉTODO size (alias para compatibilidad)
+    public int size() {
+        return tamaño;
+    }
+
+    // MÉTODO para convertir a array (para StatsManager)
+    public Object[] toArray() {
+        Object[] array = new Object[tamaño];
+        Nodo actual = cabeza;
+        int i = 0;
+        while (actual != null) {
+            array[i++] = actual.dato;
+            actual = actual.siguiente;
+        }
+        return array;
+    }
 }

@@ -1,19 +1,11 @@
-plugins {
-    id "java"
-}
+apply plugin: "java-library"
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
+// NO necesitas sourceCompatibility aquí si usas toolchain
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+sourceSets.main.java.srcDirs = ["src/main/java/"]
+sourceSets.main.resources.srcDirs = ["src/main/resources/"]
 
 dependencies {
-    implementation "com.badlogicgames.gdx:gdx:1.12.1"
-    implementation "com.badlogicgames.gdx:gdx-freetype:1.12.1"
-}
-
-sourceSets {
-    main {
-        resources.srcDirs = ["../assets"]
-    }
+  implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
