@@ -1,11 +1,11 @@
-package com.mygdx.game.structures;
+package com.mygdx.game.estructuras;
 
 public class Nodo<T> {
-    public T data;
-    public Nodo<T> siguiente;
+    public T valor;
+    public Nodo<T> sig;
 
-    public Nodo(T data) {
-        this.data = data;
-        this.siguiente = null;
+    public Nodo(T valor) {
+        this.valor = valor;
+        this.sig = null;
     }
 }

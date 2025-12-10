@@ -1,7 +1,7 @@
 package com.mygdx.game.tad;
 
 import com.mygdx.game.model.Enemy;
-import com.mygdx.game.structures.ListaEnlazada;
+import com.mygdx.game.estructuras.ListaEnlazada;
 
 public interface TADEnemigos {
     void agregarEnemigo(Enemy enemy);

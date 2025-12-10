@@ -1,34 +1,28 @@
 package com.mygdx.game.model;
 
-import com.mygdx.game.structures.ListaEnlazada;
+import com.mygdx.game.estructuras.ListaEnlazada;
 
 public class Inventario {
 
     private ListaEnlazada<Item> items;
-    private int capacidadMax = 10;
 
     public Inventario() {
         items = new ListaEnlazada<>();
     }
 
-    public boolean agregarItem(Item item) {
-        if (items.tamaño() >= capacidadMax) {
-            return false;
-        }
+    public void agregarItem(Item item) {
         items.agregar(item);
-        return true;
     }
 
-    public Item obtenerItem(int index) {
-        return items.obtener(index);
+    public Item buscarItem(String nombre) {
+        for (int i = 0; i < items.size(); i++) {
+            Item it = items.obtener(i);
+            if (it.getNombre().equals(nombre)) return it;
+        }
+        return null;
     }
 
-    public int cantidadItems() {
-        return items.tamaño();
-    }
-
-    // *** CORREGIDO ***
-    public void eliminarItem(int index) {
-        items.eliminar(index);   // eliminar() devuelve void, y ahora eliminarItem también
+    public ListaEnlazada<Item> obtenerTodos() {
+        return items;
     }
 }

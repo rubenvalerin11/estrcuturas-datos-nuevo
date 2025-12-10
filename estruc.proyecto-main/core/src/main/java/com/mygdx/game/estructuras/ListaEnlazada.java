@@ -3,7 +3,7 @@ package com.mygdx.game.estructuras;
 public class ListaEnlazada<T> {
 
     private Nodo<T> cabeza;
-    private int tamaño;
+    private int size;
 
     public void agregar(T dato) {
         Nodo<T> nuevo = new Nodo<>(dato);
@@ -15,33 +15,29 @@ public class ListaEnlazada<T> {
             while (actual.sig != null) actual = actual.sig;
             actual.sig = nuevo;
         }
-        tamaño++;
+        size++;
     }
 
-    public T obtener(int i) {
-        if (i < 0 || i >= tamaño) throw new IndexOutOfBoundsException();
+    public T obtener(int index) {
+        if (index < 0 || index >= size) throw new IndexOutOfBoundsException();
 
         Nodo<T> actual = cabeza;
-        for (int j = 0; j < i; j++) actual = actual.sig;
+        for (int i = 0; i < index; i++) actual = actual.sig;
 
         return actual.valor;
     }
 
-    public void eliminar(int i) {
-        if (i < 0 || i >= tamaño) throw new IndexOutOfBoundsException();
+    public void eliminar(int index) {
+        if (index < 0 || index >= size) throw new IndexOutOfBoundsException();
 
-        if (i == 0) {
-            cabeza = cabeza.sig;
-        } else {
+        if (index == 0) cabeza = cabeza.sig;
+        else {
             Nodo<T> actual = cabeza;
-            for (int j = 0; j < i - 1; j++) actual = actual.sig;
-
+            for (int i = 0; i < index - 1; i++) actual = actual.sig;
             actual.sig = actual.sig.sig;
         }
-        tamaño--;
+        size--;
     }
 
-    public int tamaño() {
-        return tamaño;
-    }
+    public int size() { return size; }
 }

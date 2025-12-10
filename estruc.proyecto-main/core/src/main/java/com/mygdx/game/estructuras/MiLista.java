@@ -22,7 +22,7 @@ public class MiLista<T> implements Iterable<T> {
     public boolean remove(T valor) {
         if (head == null) return false;
 
-        if (head.valor == valor) {
+        if (head.valor.equals(valor)) {
             head = head.sig;
             size--;
             return true;
@@ -32,7 +32,7 @@ public class MiLista<T> implements Iterable<T> {
         Nodo<T> actual = head.sig;
 
         while (actual != null) {
-            if (actual.valor == valor) {
+            if (actual.valor.equals(valor)) {
                 anterior.sig = actual.sig;
                 size--;
                 return true;
@@ -51,10 +51,10 @@ public class MiLista<T> implements Iterable<T> {
         return head;
     }
 
-    public boolean contiene(T val) {
+    public boolean contiene(T valor) {
         Nodo<T> aux = head;
         while (aux != null) {
-            if (aux.valor == val) return true;
+            if (aux.valor.equals(valor)) return true;
             aux = aux.sig;
         }
         return false;
@@ -63,7 +63,7 @@ public class MiLista<T> implements Iterable<T> {
     @Override
     public Iterator<T> iterator() {
         return new Iterator<T>() {
-            private Nodo<T> actual = head;
+            Nodo<T> actual = head;
 
             @Override
             public boolean hasNext() {
@@ -72,9 +72,9 @@ public class MiLista<T> implements Iterable<T> {
 
             @Override
             public T next() {
-                T v = actual.valor;
+                T val = actual.valor;
                 actual = actual.sig;
-                return v;
+                return val;
             }
         };
     }

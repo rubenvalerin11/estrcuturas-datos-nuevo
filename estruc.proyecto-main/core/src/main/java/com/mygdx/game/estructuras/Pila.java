@@ -3,22 +3,21 @@ package com.mygdx.game.estructuras;
 public class Pila<T> {
 
     private Nodo<T> cima;
-    private int tamaño;
+    private int size;
 
     public void push(T dato) {
         Nodo<T> nuevo = new Nodo<>(dato);
         nuevo.sig = cima;
         cima = nuevo;
-        tamaño++;
+        size++;
     }
 
     public T pop() {
         if (cima == null) throw new IllegalStateException("Pila vacía");
-
-        T dato = cima.valor;
+        T valor = cima.valor;
         cima = cima.sig;
-        tamaño--;
-        return dato;
+        size--;
+        return valor;
     }
 
     public T peek() {
@@ -30,7 +29,7 @@ public class Pila<T> {
         return cima == null;
     }
 
-    public int tamaño() {
-        return tamaño;
+    public int size() {
+        return size;
     }
 }
