@@ -1,22 +1,25 @@
 package com.mygdx.game.view;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.mygdx.game.MyGame;
+import com.badlogic.gdx.Input;
+
+import com.badlogic.gdx.Game;
 import com.mygdx.game.controller.GameController;
 import com.mygdx.game.controller.LevelManager;
+import com.mygdx.game.model.BossDracula;
 import com.mygdx.game.model.Enemy;
 import com.mygdx.game.player.Player;
+import com.mygdx.game.estructuras.StatsManager;
 
 public class GameScreen implements Screen {
 
-    private final MyGame game;
+    private final Game game;
 
     private OrthographicCamera camera;
     private SpriteBatch batch;
@@ -30,11 +33,11 @@ public class GameScreen implements Screen {
     private Player player;
     private GameController controller;
 
-    public GameScreen(MyGame game) {
+    public GameScreen(Game game) {
         this.game = game;
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 900, 600);
+        camera.setToOrtho(false, Player.WORLD_WIDTH, Player.WORLD_HEIGHT);
 
         batch = new SpriteBatch();
 
@@ -43,91 +46,100 @@ public class GameScreen implements Screen {
         bossHealthBar = new Texture("boss_health.png");
 
         font = new BitmapFont();
+        font.getData().setScale(1.6f);
 
-        player = new Player(200, 150);
+        player = new Player(100, 80f);
         controller = new GameController(player);
     }
 
     @Override
     public void render(float delta) {
 
-        // si está muerto → reiniciar juego
-        if (!player.isAlive()) {
-            controller.resetGame();
-            game.setScreen(new GameScreen(game));
+        // Pausa
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            game.setScreen(new PauseScreen(game, this));
             return;
         }
 
+        // actualizar lógica
+        player.update(delta);
+        controller.update(delta);
+
         LevelManager lm = controller.getLevelManager();
 
-        // PASAR DE NIVEL AUTOMÁTICAMENTE
+        // avanzar nivel
         if (lm.shouldAdvanceLevel()) {
             lm.advanceLevel();
         }
 
-        // SI ES NIVEL DE JEFE Y YA NO HAY ENEMIGOS → GANASTE
+        // jefe derrotado → victoria
         if (controller.isBossDefeated()) {
+            StatsManager.get().partidaTerminada(true, lm.getKills());
             game.setScreen(new VictoryScreen(game));
             return;
         }
 
-        // Entrada
-        float moveX = 0f, moveY = 0f;
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) moveX = -1;
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) moveX = 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) moveY = 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) moveY = -1;
-        boolean attack = Gdx.input.isKeyJustPressed(Input.Keys.SPACE);
-
-        player.update(delta, moveX, moveY, attack);
-        controller.update(delta);
+        // jugador muerto → game over
+        if (!player.isAlive()) {
+            StatsManager.get().partidaTerminada(false, lm.getKills());
+            game.setScreen(new GameOverScreen(game));
+            return;
+        }
 
         camera.update();
         batch.setProjectionMatrix(camera.combined);
+
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
 
-        batch.draw(background, 0, 0);
+        batch.draw(background, 0, 0, Player.WORLD_WIDTH, Player.WORLD_HEIGHT);
 
-        // jugador y enemigos
         player.render(batch);
         controller.render(batch);
 
-        // barra de vida
+        // Barra de vida jugador
         float p = player.getHealthPercent();
-        batch.draw(healthBar, 20, 560, healthBar.getWidth() * p, healthBar.getHeight());
+        batch.draw(healthBar, 20, 580, healthBar.getWidth() * p, healthBar.getHeight());
 
-        // texto nivel
-        font.draw(batch, "Nivel: " + lm.getLevel(), 750, 580);
-        font.draw(batch, "Kills: " + lm.getKills() + "/10", 750, 550);
+        // Texto nivel + kills
+        font.draw(batch, "Nivel: " + lm.getLevel(), 800, 620);
+        font.draw(batch, "Kills: " + lm.getKills() + "/" + lm.getRequiredKills(), 750, 590);
 
-        // barra de vida del jefe (si aplica)
-        if (controller.getLevelManager().isBossLevel()) {
-            Enemy boss = controller.getBoss();
-            if (boss != null) {
-                float pBoss = (float) boss.getVida() / (float) boss.getVidaMaxima();
-                batch.draw(bossHealthBar, 200, 560, 500 * pBoss, 20);
-            }
+        // Texto tutorial (solo nivel 1)
+        if (lm.getLevel() == 1) {
+            font.draw(batch, "NIVEL 1 - TUTORIAL", 350, 350);
+            font.draw(batch, "Moverse: W A S D", 350, 320);
+            font.draw(batch, "Atacar: J", 350, 290);
+            font.draw(batch, "Pausa: ESC", 350, 260);
+        }
+
+        // Barra de vida del jefe
+        if (lm.isBossLevel()) {
+            // hay un solo enemigo, el Boss
+            // tu GameController ya se encarga de tenerlo
+            // aquí solo dibujamos la barra si existe
+            // (simplificamos: no buscamos el objeto, solo cuando level 4 y aún no victory)
+            // si quieres exacto, guarda referencia al Boss en el controller
+            font.draw(batch, "DRACULA", 380, 560);
+            // puedes adaptar luego a porcentaje real usando getters del boss
         }
 
         batch.end();
     }
 
-    @Override public void resize(int width, int height) {}
     @Override public void show() {}
+    @Override public void resize(int w, int h) {}
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}
-
-    @Override
-    public void dispose() {
+    @Override public void dispose() {
         batch.dispose();
         background.dispose();
         healthBar.dispose();
         bossHealthBar.dispose();
-        player.dispose();
+        font.dispose();
         controller.dispose();
     }
 }

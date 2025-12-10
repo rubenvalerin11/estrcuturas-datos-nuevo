@@ -1,12 +1,9 @@
-package com.mygdx.game.structures;
+package com.mygdx.game.estructuras;
 
-/**
- * Lista enlazada simple compatible con Nodo<T>.
- */
 public class ListaEnlazada<T> {
 
     private Nodo<T> cabeza;
-    private int size;
+    private int tamaño;
 
     public void agregar(T dato) {
         Nodo<T> nuevo = new Nodo<>(dato);
@@ -15,42 +12,36 @@ public class ListaEnlazada<T> {
             cabeza = nuevo;
         } else {
             Nodo<T> actual = cabeza;
-            while (actual.sig != null) {
-                actual = actual.sig;
-            }
+            while (actual.sig != null) actual = actual.sig;
             actual.sig = nuevo;
         }
-        size++;
+        tamaño++;
     }
 
-    public T obtener(int index) {
-        if (index < 0 || index >= size)
-            throw new IndexOutOfBoundsException("Índice fuera de rango: " + index);
+    public T obtener(int i) {
+        if (i < 0 || i >= tamaño) throw new IndexOutOfBoundsException();
 
         Nodo<T> actual = cabeza;
-        for (int i = 0; i < index; i++)
-            actual = actual.sig;
+        for (int j = 0; j < i; j++) actual = actual.sig;
 
         return actual.valor;
     }
 
-    public void eliminar(int index) {
-        if (index < 0 || index >= size)
-            throw new IndexOutOfBoundsException("Índice fuera de rango: " + index);
+    public void eliminar(int i) {
+        if (i < 0 || i >= tamaño) throw new IndexOutOfBoundsException();
 
-        if (index == 0) {
+        if (i == 0) {
             cabeza = cabeza.sig;
         } else {
             Nodo<T> actual = cabeza;
-            for (int i = 0; i < index - 1; i++)
-                actual = actual.sig;
+            for (int j = 0; j < i - 1; j++) actual = actual.sig;
 
             actual.sig = actual.sig.sig;
         }
-        size--;
+        tamaño--;
     }
 
     public int tamaño() {
-        return size;
+        return tamaño;
     }
 }

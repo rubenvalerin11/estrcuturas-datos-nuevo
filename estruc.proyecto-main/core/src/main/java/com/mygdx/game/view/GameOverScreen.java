@@ -8,16 +8,16 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Input;
 
-public class VictoryScreen implements Screen {
+public class GameOverScreen implements Screen {
 
     private final Game game;
     private Texture background;
     private SpriteBatch batch;
 
-    public VictoryScreen(Game game) {
+    public GameOverScreen(Game game) {
         this.game = game;
         batch = new SpriteBatch();
-        background = new Texture("winpantalla.png");
+        background = new Texture("gameover.png");
     }
 
     @Override

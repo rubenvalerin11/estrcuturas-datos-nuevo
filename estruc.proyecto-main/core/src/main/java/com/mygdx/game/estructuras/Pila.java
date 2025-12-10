@@ -1,34 +1,28 @@
-package com.mygdx.game.structures;
+package com.mygdx.game.estructuras;
 
-/**
- * Implementación de una pila enlazada (LIFO).
- */
 public class Pila<T> {
 
     private Nodo<T> cima;
-    private int size;
+    private int tamaño;
 
     public void push(T dato) {
         Nodo<T> nuevo = new Nodo<>(dato);
         nuevo.sig = cima;
         cima = nuevo;
-        size++;
+        tamaño++;
     }
 
     public T pop() {
-        if (cima == null)
-            throw new IllegalStateException("Pila vacía");
+        if (cima == null) throw new IllegalStateException("Pila vacía");
 
         T dato = cima.valor;
         cima = cima.sig;
-        size--;
+        tamaño--;
         return dato;
     }
 
     public T peek() {
-        if (cima == null)
-            throw new IllegalStateException("Pila vacía");
-
+        if (cima == null) throw new IllegalStateException("Pila vacía");
         return cima.valor;
     }
 
@@ -37,6 +31,6 @@ public class Pila<T> {
     }
 
     public int tamaño() {
-        return size;
+        return tamaño;
     }
 }

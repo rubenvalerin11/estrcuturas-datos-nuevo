@@ -1,13 +1,10 @@
-package com.mygdx.game.structures;
+package com.mygdx.game.estructuras;
 
-/**
- * Implementación de una cola enlazada (FIFO).
- */
 public class Cola<T> {
 
     private Nodo<T> frente;
     private Nodo<T> fin;
-    private int size;
+    private int tamaño;
 
     public void encolar(T dato) {
         Nodo<T> nuevo = new Nodo<>(dato);
@@ -18,21 +15,18 @@ public class Cola<T> {
             fin.sig = nuevo;
             fin = nuevo;
         }
-
-        size++;
+        tamaño++;
     }
 
     public T desencolar() {
-        if (frente == null)
-            throw new IllegalStateException("Cola vacía");
+        if (frente == null) throw new IllegalStateException("Cola vacía");
 
         T dato = frente.valor;
         frente = frente.sig;
 
-        if (frente == null)
-            fin = null;
+        if (frente == null) fin = null;
 
-        size--;
+        tamaño--;
         return dato;
     }
 
@@ -41,6 +35,6 @@ public class Cola<T> {
     }
 
     public int tamaño() {
-        return size;
+        return tamaño;
     }
 }

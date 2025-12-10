@@ -1,37 +1,50 @@
 package com.mygdx.game.view;
 
-import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Input;
+import com.mygdx.game.estructuras.StatsManager;
 
-public class VictoryScreen implements Screen {
+public class StatsScreen implements Screen {
 
     private final Game game;
-    private Texture background;
     private SpriteBatch batch;
+    private BitmapFont font;
 
-    public VictoryScreen(Game game) {
+    public StatsScreen(Game game) {
         this.game = game;
         batch = new SpriteBatch();
-        background = new Texture("winpantalla.png");
+
+        font = new BitmapFont();
+        font.getData().setScale(1.8f);
     }
 
     @Override
     public void render(float delta) {
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new MenuScreen(game));
         }
+
+        StatsManager sm = StatsManager.get();
 
         Gdx.gl.glClearColor(0,0,0,1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
-        batch.draw(background, 0, 0, 960, 640);
+
+        font.draw(batch, "ESTADISTICAS", 320, 550);
+
+        font.draw(batch, "Partidas jugadas: " + sm.getPartidasJugadas(), 300, 450);
+        font.draw(batch, "Ganadas: " + sm.getPartidasGanadas(), 300, 400);
+        font.draw(batch, "Perdidas: " + sm.getPartidasPerdidas(), 300, 350);
+
+        font.draw(batch, "Presiona ESC para volver", 300, 250);
+
         batch.end();
     }
 
@@ -42,6 +55,6 @@ public class VictoryScreen implements Screen {
     @Override public void hide() {}
     @Override public void dispose() {
         batch.dispose();
-        background.dispose();
+        font.dispose();
     }
 }

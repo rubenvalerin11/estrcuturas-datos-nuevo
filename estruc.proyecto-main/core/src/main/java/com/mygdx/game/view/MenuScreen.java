@@ -1,64 +1,91 @@
 package com.mygdx.game.view;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.Color;
-import com.mygdx.game.MyGame;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.Input;
 
 public class MenuScreen implements Screen {
 
-    private final MyGame game;
-    private SpriteBatch batch;
-    private BitmapFont titleFont;
-    private BitmapFont optionFont;
+    private final Game game;
 
-    public MenuScreen(MyGame game) {
+    private Texture background;
+    private SpriteBatch batch;
+    private BitmapFont font;
+
+    private int selected = 0;
+    private final String[] options = {
+        "Iniciar Partida",
+        "Estadísticas",
+        "Controles",
+        "Salir"
+    };
+
+    public MenuScreen(Game game) {
         this.game = game;
+
         batch = new SpriteBatch();
-        titleFont = new BitmapFont();
-        optionFont = new BitmapFont();
-        titleFont.setColor(Color.RED);
-        optionFont.setColor(Color.WHITE);
+        background = new Texture("Menuinicio.png");
+
+        font = new BitmapFont();
+        font.getData().setScale(2f);
     }
 
     @Override
     public void render(float delta) {
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.W)) selected--;
+        if (Gdx.input.isKeyJustPressed(Input.Keys.S)) selected++;
+        if (selected < 0) selected = options.length - 1;
+        if (selected >= options.length) selected = 0;
+
         if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            game.setScreen(new GameScreen(game));
-            return;
+            switch (selected) {
+                case 0:
+                    game.setScreen(new GameScreen(game));
+                    return;
+                case 1:
+                    game.setScreen(new StatsScreen(game));
+                    return;
+                case 2:
+                    game.setScreen(new ControlsScreen(game));
+                    return;
+                case 3:
+                    Gdx.app.exit();
+                    return;
+            }
         }
 
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(0,0,0,1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
-        titleFont.getData().setScale(2.2f);
-        optionFont.getData().setScale(1.3f);
+        batch.draw(background, 0, 0, 960, 640);
 
-        titleFont.draw(batch, "Castlevania - Proyecto", 180, 400);
-        optionFont.draw(batch, "ENTER - Start Game", 260, 260);
-        optionFont.draw(batch, "ESC - Exit (cierra la ventana)", 220, 220);
-        batch.end();
+        for (int i = 0; i < options.length; i++) {
+            float x = 320;
+            float y = 350 - i * 50;
+            if (i == selected) font.setColor(1, 0.2f, 0.2f, 1);
+            else font.setColor(1, 1, 1, 1);
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            Gdx.app.exit();
+            font.draw(batch, options[i], x, y);
         }
+
+        batch.end();
     }
 
-    @Override public void resize(int width, int height) {}
     @Override public void show() {}
+    @Override public void resize(int w, int h) {}
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}
-
-    @Override
-    public void dispose() {
+    @Override public void dispose() {
         batch.dispose();
-        titleFont.dispose();
-        optionFont.dispose();
+        background.dispose();
+        font.dispose();
     }
 }

@@ -3,27 +3,29 @@ package com.mygdx.game.view;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.Input;
 
-public class VictoryScreen implements Screen {
+public class ControlsScreen implements Screen {
 
     private final Game game;
-    private Texture background;
     private SpriteBatch batch;
+    private BitmapFont font;
 
-    public VictoryScreen(Game game) {
+    public ControlsScreen(Game game) {
         this.game = game;
         batch = new SpriteBatch();
-        background = new Texture("winpantalla.png");
+
+        font = new BitmapFont();
+        font.getData().setScale(1.8f);
     }
 
     @Override
     public void render(float delta) {
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             game.setScreen(new MenuScreen(game));
         }
 
@@ -31,7 +33,15 @@ public class VictoryScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         batch.begin();
-        batch.draw(background, 0, 0, 960, 640);
+
+        font.draw(batch, "CONTROLES", 350, 550);
+        font.draw(batch, "WASD = Moverse", 300, 450);
+        font.draw(batch, "J = Atacar", 300, 400);
+        font.draw(batch, "ESC = Pausa / Menu", 300, 350);
+        font.draw(batch, "ENTER = Seleccionar opcion", 300, 300);
+
+        font.draw(batch, "Presiona ESC para volver", 300, 200);
+
         batch.end();
     }
 
@@ -42,6 +52,6 @@ public class VictoryScreen implements Screen {
     @Override public void hide() {}
     @Override public void dispose() {
         batch.dispose();
-        background.dispose();
+        font.dispose();
     }
 }
