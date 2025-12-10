@@ -5,27 +5,27 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.Animation;
 
-public class Skeleton extends Enemy {
+public class Minotauro extends Enemy {
 
-    private Texture walkSheet;
+    private Texture sheet;
     private Animation<TextureRegion> anim;
     private float time = 0f;
 
-    public Skeleton(float x, float y) {
-        super(x, y, 60f, 40, 8);
+    public Minotauro(float x, float y) {
+        super(x, y, 70f, 80, 15);
 
-        walkSheet = new Texture("eskeletocaminando.png");
+        sheet = new Texture("minotaurocaminando.png");
 
-        int COLS = 5;
-        int fw = walkSheet.getWidth() / COLS;
-        int fh = walkSheet.getHeight();
+        int COLS = 10;
+        int fw = sheet.getWidth() / COLS;
+        int fh = sheet.getHeight();
 
         TextureRegion[] frames = new TextureRegion[COLS];
-        TextureRegion[][] tmp = TextureRegion.split(walkSheet, fw, fh);
+        TextureRegion[][] tmp = TextureRegion.split(sheet, fw, fh);
 
         for (int i = 0; i < COLS; i++) frames[i] = tmp[0][i];
 
-        anim = new Animation<>(0.12f, frames);
+        anim = new Animation<>(0.09f, frames);
         anim.setPlayMode(Animation.PlayMode.LOOP);
 
         width = fw * 1.4f;
@@ -57,6 +57,6 @@ public class Skeleton extends Enemy {
 
     @Override
     public void dispose() {
-        walkSheet.dispose();
+        sheet.dispose();
     }
 }

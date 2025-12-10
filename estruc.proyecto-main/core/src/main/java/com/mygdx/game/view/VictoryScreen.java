@@ -1,49 +1,48 @@
 package com.mygdx.game.view;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.Color;
-import com.mygdx.game.MyGame;
+import com.mygdx.game.MainGame;
 
 public class VictoryScreen implements Screen {
 
-    private final MyGame game;
+    private final MainGame game;
     private SpriteBatch batch;
-    private BitmapFont font;
 
-    public VictoryScreen(MyGame game) {
+    private Texture background;
+    private Texture pressEnter;
+
+    public VictoryScreen(MainGame game) {
         this.game = game;
-        batch = new SpriteBatch();
-        font = new BitmapFont();
-        font.setColor(Color.GOLD);
+        this.batch = new SpriteBatch();
+
+        background = new Texture("victory_bg.png"); // usa tu imagen
+        pressEnter = new Texture("press_start.png");
     }
 
     @Override
     public void render(float delta) {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        batch.begin();
-        font.getData().setScale(2.2f);
-        font.draw(batch, "VICTORIA!", 330, 380);
-
-        font.getData().setScale(1.3f);
-        font.draw(batch, "Has derrotado a Dracula", 300, 320);
-        font.draw(batch, "Presiona ENTER para volver al menu", 240, 240);
-        batch.end();
-
-        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.ENTER)) {
             game.setScreen(new MenuScreen(game));
         }
+
+        batch.begin();
+        batch.draw(background, 0, 0, 960, 640);
+        batch.draw(pressEnter, 350, 100);
+        batch.end();
     }
 
-    @Override public void dispose() { batch.dispose(); font.dispose(); }
+    @Override public void dispose() {
+        batch.dispose();
+        background.dispose();
+        pressEnter.dispose();
+    }
+
     @Override public void show() {}
-    @Override public void resize(int w, int h) {}
+    @Override public void resize(int width, int height) {}
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}
