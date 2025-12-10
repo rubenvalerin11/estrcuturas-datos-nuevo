@@ -1,26 +1,47 @@
 package com.mygdx.game.model;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class Skeleton extends Enemy {
 
-    private Texture sprite;
+    private Texture walkSheet;
+    private Animation<TextureRegion> walkAnimation;
+    private float stateTime = 0f;
 
     public Skeleton(float x, float y) {
-        super(x, y, 40f, 30, 8);
-        sprite = new Texture("skeleton_0.png");
-        width = sprite.getWidth();
-        height = sprite.getHeight();
+        super(x, y, 80f, 40, 10); // speed, vida, daño
+
+        walkSheet = new Texture("eskeletocaminando.png");
+
+        int FRAME_COLS = 6; // AJUSTA según frames que tenga
+        int frameWidth = walkSheet.getWidth() / FRAME_COLS;
+        int frameHeight = walkSheet.getHeight();
+
+        TextureRegion[][] tmp = TextureRegion.split(walkSheet, frameWidth, frameHeight);
+        TextureRegion[] frames = new TextureRegion[FRAME_COLS];
+        for (int i = 0; i < FRAME_COLS; i++) {
+            frames[i] = tmp[0][i];
+        }
+
+        walkAnimation = new Animation<>(0.12f, frames);
+        walkAnimation.setPlayMode(Animation.PlayMode.LOOP);
+
+        width = frameWidth;
+        height = frameHeight;
     }
 
     @Override
     public void update(float delta, float playerX, float playerY) {
-        // Enemigo más lento, movimiento sencillo hacia el jugador
         if (!vivo) return;
+
+        stateTime += delta;
+
         float dx = playerX - x;
         float dy = playerY - y;
-        float len = (float)Math.sqrt(dx * dx + dy * dy);
+        float len = (float) Math.sqrt(dx * dx + dy * dy);
         if (len > 1f) {
             dx /= len;
             dy /= len;
@@ -32,11 +53,14 @@ public class Skeleton extends Enemy {
     @Override
     public void render(SpriteBatch batch) {
         if (!vivo) return;
-        batch.draw(sprite, x, y);
+
+        TextureRegion frame = walkAnimation.getKeyFrame(stateTime);
+        // no volteo porque el sprite ya viene hacia la derecha; si quieres, puedes usar flip
+        batch.draw(frame, x, y);
     }
 
     @Override
     public void dispose() {
-        if (sprite != null) sprite.dispose();
+        walkSheet.dispose();
     }
 }

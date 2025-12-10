@@ -1,7 +1,10 @@
 package com.mygdx.game.player;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 
 public class Player {
@@ -9,64 +12,80 @@ public class Player {
     private float x, y;
     private float speed = 200f;
 
-    private Texture[] walkFrames;
-    private float animationTimer;
-    private int frameIndex;
-    private float frameDuration = 0.1f;
-    private boolean facingRight = true;
-
-    // Salud
     private int maxHealth = 100;
     private int health = 100;
     private boolean alive = true;
 
-    // Ataque cuerpo a cuerpo
+    private boolean facingRight = true;
+
+    // animación caminar
+    private Texture walkSheet;
+    private Animation<TextureRegion> walkAnimation;
+    private TextureRegion idleFrame;
+    private float animTime = 0f;
+
+    // ataque
     private boolean attacking = false;
     private float attackTimer = 0f;
-    private float attackDuration = 0.2f; // segundos
-    private int attackDamage = 15;
+    private float attackDuration = 0.2f;
+    private int attackDamage = 20;
 
-    // Colisiones
+    // hitboxes
     private float width;
     private float height;
+
+    private Rectangle bodyBounds = new Rectangle();
+    private Rectangle attackBounds = new Rectangle();
 
     public Player(float x, float y) {
         this.x = x;
         this.y = y;
-        loadWalkFrames();
-    }
 
-    private void loadWalkFrames() {
-        // Usa los 6 frames de alucard caminando
-        walkFrames = new Texture[6];
-        for (int i = 0; i < 6; i++) {
-            walkFrames[i] = new Texture("alucard_walk_" + i + ".png");
+        // sprites:
+        //  - alucardcaminando.png  (spritesheet horizontal)
+        //  - alucarddepie.png      (frame quieto)
+        walkSheet = new Texture("alucardcaminando.png");
+        idleFrame = new TextureRegion(new Texture("alucarddepie.png"));
+
+        // 👉 AJUSTA ESTE NÚMERO AL NÚMERO DE FRAMES DE TU SPRITESHEET
+        int FRAME_COLS = 6; // si tu sheet tiene 8 frames, cambia a 8
+
+        int frameWidth = walkSheet.getWidth() / FRAME_COLS;
+        int frameHeight = walkSheet.getHeight();
+
+        TextureRegion[][] tmp = TextureRegion.split(walkSheet, frameWidth, frameHeight);
+        TextureRegion[] frames = new TextureRegion[FRAME_COLS];
+        for (int i = 0; i < FRAME_COLS; i++) {
+            frames[i] = tmp[0][i];
         }
-        width = walkFrames[0].getWidth();
-        height = walkFrames[0].getHeight();
+
+        walkAnimation = new Animation<>(0.08f, frames);
+        walkAnimation.setPlayMode(Animation.PlayMode.LOOP);
+
+        width = frameWidth;
+        height = frameHeight;
     }
 
     public void update(float delta, float moveX, float moveY, boolean attackPressed) {
-        // Movimiento
-        if (moveX != 0 || moveY != 0) {
-            x += moveX * speed * delta;
-            y += moveY * speed * delta;
-            if (moveX > 0) facingRight = true;
-            if (moveX < 0) facingRight = false;
+        if (!alive) return;
 
-            // Animación caminar
-            animationTimer += delta;
-            if (animationTimer >= frameDuration) {
-                animationTimer = 0f;
-                frameIndex = (frameIndex + 1) % walkFrames.length;
-            }
+        // movimiento
+        float velX = moveX * speed;
+        float velY = moveY * speed;
+
+        if (velX != 0 || velY != 0) {
+            animTime += delta;
         } else {
-            // Quieto → primer frame
-            frameIndex = 0;
-            animationTimer = 0f;
+            animTime = 0; // vuelve a primer frame cuando está quieto
         }
 
-        // Ataque
+        x += velX * delta;
+        y += velY * delta;
+
+        if (velX > 0) facingRight = true;
+        if (velX < 0) facingRight = false;
+
+        // ataque
         if (attackPressed && !attacking) {
             attacking = true;
             attackTimer = 0f;
@@ -76,32 +95,59 @@ public class Player {
             attackTimer += delta;
             if (attackTimer >= attackDuration) {
                 attacking = false;
+                attackTimer = 0f;
             }
+        }
+
+        // actualizar hitboxes
+        bodyBounds.set(x + width * 0.25f, y, width * 0.5f, height * 0.9f);
+
+        if (attacking) {
+            float attackWidth = 40f;
+            float attackHeight = height * 0.6f;
+            float attackX = facingRight ? (bodyBounds.x + bodyBounds.width) : (bodyBounds.x - attackWidth);
+            float attackY = bodyBounds.y + bodyBounds.height * 0.2f;
+            attackBounds.set(attackX, attackY, attackWidth, attackHeight);
+        } else {
+            attackBounds.set(0, 0, 0, 0);
         }
     }
 
     public void render(SpriteBatch batch) {
-        Texture frame = walkFrames[frameIndex];
-        if (facingRight) {
-            batch.draw(frame, x, y);
+        TextureRegion current;
+
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.A) ||
+            Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.D) ||
+            Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.W) ||
+            Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.S)) {
+            current = walkAnimation.getKeyFrame(animTime);
         } else {
-            batch.draw(frame, x + width, y, -width, height);
+            current = idleFrame;
         }
+
+        float drawX = x;
+        float drawY = y;
+
+        if (facingRight) {
+            batch.draw(current, drawX, drawY);
+        } else {
+            batch.draw(current, drawX + width, drawY, -width, height);
+        }
+
+        // (Si quieres depurar hitboxes, aquí puedes dibujar rectángulos con ShapeRenderer)
+    }
+
+    public void dispose() {
+        walkSheet.dispose();
+        idleFrame.getTexture().dispose();
     }
 
     public Rectangle getBounds() {
-        return new Rectangle(x, y, width, height);
+        return bodyBounds;
     }
 
     public Rectangle getAttackBounds() {
-        if (!attacking) {
-            return new Rectangle(0, 0, 0, 0);
-        }
-        float attackWidth = width * 0.6f;
-        float attackHeight = height * 0.6f;
-        float attackX = facingRight ? x + width : x - attackWidth;
-        float attackY = y + height * 0.2f;
-        return new Rectangle(attackX, attackY, attackWidth, attackHeight);
+        return attackBounds;
     }
 
     public void receiveDamage(int dmg) {
@@ -117,14 +163,6 @@ public class Player {
         return alive;
     }
 
-    public int getHealth() {
-        return health;
-    }
-
-    public int getMaxHealth() {
-        return maxHealth;
-    }
-
     public float getHealthPercent() {
         return (float) health / (float) maxHealth;
     }
@@ -132,18 +170,10 @@ public class Player {
     public float getX() { return x; }
     public float getY() { return y; }
 
-    public void dispose() {
-        if (walkFrames != null) {
-            for (Texture t : walkFrames) {
-                if (t != null) t.dispose();
-            }
-        }
-    }
     public void reset() {
         this.health = maxHealth;
         this.alive = true;
         this.x = 200;
         this.y = 150;
     }
-
 }
