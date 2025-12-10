@@ -2,16 +2,15 @@ package com.mygdx.game.controller;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
+import com.mygdx.game.estructuras.MiLista;
+import com.mygdx.game.estructuras.Nodo;
 import com.mygdx.game.model.*;
 import com.mygdx.game.player.Player;
-
-import java.util.ArrayList;
-import java.util.Iterator;
 
 public class GameController {
 
     private final Player player;
-    private final ArrayList<Enemy> enemigos = new ArrayList<>();
+    private final MiLista<Enemy> enemigos = new MiLista<>();
     private final LevelManager levelManager = new LevelManager();
 
     private float spawnTimer = 0f;
@@ -27,54 +26,65 @@ public class GameController {
         return levelManager;
     }
 
+    public Enemy getBoss() {
+        Nodo<Enemy> aux = enemigos.getHead();
+        while (aux != null) {
+            if (aux.valor instanceof BossDracula)
+                return aux.valor;
+            aux = aux.sig;
+        }
+        return null;
+    }
+
     public void update(float delta) {
 
         if (!player.isAlive()) return;
 
         spawnTimer += delta;
 
-        // NIVEL 1 y 2 → Enemigos normales
+        // Niveles 1 y 2 → enemigos
         if (levelManager.getLevel() < 3) {
             if (spawnTimer >= spawnInterval) {
                 spawnTimer = 0f;
                 spawnEnemyByLevel();
             }
-        }
-        // NIVEL 3 → Solo jefe (Drácula)
-        else {
+
+        } else { // Nivel 3 → solo jefe
             if (!bossSpawned) {
-                enemigos.clear();
-                enemigos.add(new BossDracula(500, 200));  // posición fija
+                enemigos.add(new BossDracula(500, 200));
                 bossSpawned = true;
             }
         }
 
-        // Actualizar enemigos y detectar colisiones
-        Iterator<Enemy> it = enemigos.iterator();
-        while (it.hasNext()) {
-            Enemy e = it.next();
+        // recorrer lista dinámica
+        Nodo<Enemy> nodo = enemigos.getHead();
+
+        while (nodo != null) {
+            Enemy e = nodo.valor;
+            Nodo<Enemy> sig = nodo.sig;
 
             e.update(delta, player.getX(), player.getY());
 
-            // Enemigo muerto
             if (!e.estaVivo()) {
                 levelManager.enemyKilled();
-                it.remove();
+                enemigos.remove(e);
+                nodo = sig;
                 continue;
             }
 
-            // Colisión enemigo → daño al jugador
             Rectangle rPlayer = player.getBounds();
             Rectangle rEnemy = e.getBounds();
+
             if (rPlayer.overlaps(rEnemy)) {
                 player.receiveDamage(e.getDano());
             }
 
-            // Colisión ataque del jugador → daño al enemigo
-            Rectangle rAttack = player.getAttackBounds();
-            if (rAttack.width > 0 && rAttack.overlaps(rEnemy)) {
-                e.recibirDano(20); // daño base del jugador
+            Rectangle atk = player.getAttackBounds();
+            if (atk.width > 0 && atk.overlaps(rEnemy)) {
+                e.recibirDano(20);
             }
+
+            nodo = sig;
         }
     }
 
@@ -93,17 +103,7 @@ public class GameController {
     }
 
     public boolean isBossDefeated() {
-        return levelManager.getLevel() == 3 && bossSpawned && enemigos.isEmpty();
-    }
-
-    // << NUEVO → Usado por GameScreen para la barra de vida del jefe >>
-    public Enemy getBoss() {
-        for (Enemy e : enemigos) {
-            if (e instanceof BossDracula) {
-                return e;
-            }
-        }
-        return null;
+        return levelManager.getLevel() == 3 && bossSpawned && enemigos.size() == 0;
     }
 
     public void render(SpriteBatch batch) {
@@ -112,7 +112,12 @@ public class GameController {
     }
 
     public void resetGame() {
-        enemigos.clear();
+        Nodo<Enemy> n = enemigos.getHead();
+        while (n != null) {
+            n.valor.dispose();
+            n = n.sig;
+        }
+        enemigos.getHead();
         levelManager.reset();
         bossSpawned = false;
         player.reset();
@@ -121,6 +126,5 @@ public class GameController {
     public void dispose() {
         for (Enemy e : enemigos)
             e.dispose();
-        enemigos.clear();
     }
 }
