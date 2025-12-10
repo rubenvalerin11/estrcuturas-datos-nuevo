@@ -20,7 +20,7 @@ public class LevelManager {
         switch (level) {
             case 2: requiredKills = 8; break;  // esqueletos
             case 3: requiredKills = 1; break;  // minotauro
-            case 4: requiredKills = 0; break;  // Drácula => se controla por vida
+            case 4: requiredKills = 0; break;  // drácula → depende de vida
             default: requiredKills = 0;
         }
     }
@@ -35,7 +35,7 @@ public class LevelManager {
 
     public boolean shouldAdvanceLevel() {
         if (level == 2 || level == 3) {
-            return requiredKills > 0 && kills >= requiredKills;
+            return kills >= requiredKills;
         }
         return false;
     }
@@ -48,15 +48,8 @@ public class LevelManager {
         }
     }
 
-    // Se llama cuando terminas de caminar el tutorial
     public void gotoLevel2FromWalk() {
         level = 2;
-        kills = 0;
-        updateRequiredKills();
-    }
-
-    public void reset() {
-        level = 1;
         kills = 0;
         updateRequiredKills();
     }

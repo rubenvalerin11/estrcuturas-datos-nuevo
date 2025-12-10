@@ -17,14 +17,10 @@ public class GameController {
     }
 
     private Node head;
-    private int count;
-
     private final Player player;
     private final LevelManager levelManager;
 
-    private BossDracula bossRef;
-
-    // Spawn Fibonacci para esqueletos (nivel 2)
+    // Fibonacci spawns (Nivel 2)
     private float fibTimer;
     private float fibPrev;
     private float fibCurr;
@@ -32,9 +28,7 @@ public class GameController {
     private int skeletonsSpawned;
     private static final int MAX_SKELETONS = 8;
 
-    public GameController(Player player) {
-        this(player, 1);
-    }
+    private BossDracula bossRef;
 
     public GameController(Player player, int startLevel) {
         this.player = player;
@@ -42,29 +36,22 @@ public class GameController {
         onLevelChanged();
     }
 
-    public LevelManager getLevelManager() {
-        return levelManager;
-    }
+    public LevelManager getLevelManager() { return levelManager; }
 
     public void onLevelChanged() {
         clearEnemies();
         bossRef = null;
         resetFib();
 
-        int lvl = levelManager.getLevel();
-        switch (lvl) {
+        switch (levelManager.getLevel()) {
             case 1:
-                // Tutorial: sin enemigos
                 break;
             case 2:
-                // Esqueletos: se generan con Fibonacci en update()
                 break;
             case 3:
-                // Un solo minotauro
                 addEnemy(new Minotauro(900, 80));
                 break;
             case 4:
-                // Drácula jefe final
                 bossRef = new BossDracula(900, 80);
                 addEnemy(bossRef);
                 break;
@@ -75,7 +62,6 @@ public class GameController {
         Node n = new Node(e);
         n.next = head;
         head = n;
-        count++;
     }
 
     private void clearEnemies() {
@@ -85,35 +71,30 @@ public class GameController {
             c = c.next;
         }
         head = null;
-        count = 0;
     }
 
     private void resetFib() {
         fibTimer = 0f;
         fibPrev = 0.5f;
         fibCurr = 0.5f;
-        nextSpawnTime = 0f;    // primer esqueleto inmediato
+        nextSpawnTime = 0f;
         skeletonsSpawned = 0;
     }
 
-    public float getBossHealthPercent() {
-        if (bossRef == null || bossRef.getVidaMaxima() == 0) return 0f;
-        return (float) bossRef.getVida() / bossRef.getVidaMaxima();
-    }
-
     public boolean isBossDefeated() {
-        return bossRef != null && !bossRef.estaVivo();
+        return bossRef != null && !bossRef.isAlive();
     }
 
     public void update(float delta) {
+
         int lvl = levelManager.getLevel();
 
-        // Spawn Fibonacci en nivel 2
+        // NIVEL 2 – Esqueletos Fibonacci
         if (lvl == 2 && skeletonsSpawned < MAX_SKELETONS) {
             fibTimer += delta;
             if (fibTimer >= nextSpawnTime) {
-                float x = 800 + (float) (Math.random() * 200f);
-                addEnemy(new Skeleton(x, 80));
+
+                addEnemy(new Skeleton(900 + (float)(Math.random()*100), 80));
                 skeletonsSpawned++;
 
                 fibTimer = 0f;
@@ -124,6 +105,7 @@ public class GameController {
             }
         }
 
+        // UPDATE DE CADA ENEMIGO
         Node current = head;
         Node prev = null;
 
@@ -131,30 +113,27 @@ public class GameController {
             Enemy e = current.enemy;
             e.update(delta, player.getX(), player.getY());
 
-            if (!e.estaVivo()) {
+            if (!e.isAlive()) {
                 levelManager.enemyKilled();
-                count--;
 
-                if (prev == null) {
-                    head = current.next;
-                } else {
-                    prev.next = current.next;
-                }
+                if (prev == null) head = current.next;
+                else prev.next = current.next;
 
                 current = (prev == null) ? head : prev.next;
                 continue;
             }
 
-            Rectangle rPlayer = player.getBounds();
-            Rectangle rEnemy = e.getBounds();
-
-            if (rPlayer.overlaps(rEnemy)) {
-                player.receiveDamage(e.getDano());
+            // Colisión enemigo → daño
+            Rectangle p = player.getBounds();
+            Rectangle r = e.getBounds();
+            if (p.overlaps(r)) {
+                player.receiveDamage(e.getDamage());
             }
 
-            Rectangle rAtk = player.getAttackBounds();
-            if (rAtk.width > 0 && rAtk.overlaps(rEnemy)) {
-                e.recibirDano(player.getAttackDamage());
+            // Ataque del jugador
+            Rectangle atk = player.getAttackBounds();
+            if (atk.width > 0 && atk.overlaps(r)) {
+                e.receiveDamage(player.getAttackDamage());
             }
 
             prev = current;
