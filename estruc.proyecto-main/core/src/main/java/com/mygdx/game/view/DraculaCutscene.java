@@ -1,61 +1,100 @@
 package com.mygdx.game.view;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.Color;
-import com.mygdx.game.MyGame;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.mygdx.game.player.Player;
+import com.mygdx.game.controller.GameController;
 
 public class DraculaCutscene implements Screen {
 
-    private final MyGame game;
-    private Texture draculaImg;
+    private final Game game;
+
+    private OrthographicCamera camera;
     private SpriteBatch batch;
+
+    private Texture cutsceneImg;
     private BitmapFont font;
 
-    private float timer = 0f;
+    private float time = 0f;
+    private float fade = 1f;  // 1 = negro, 0 = visible
 
-    public DraculaCutscene(MyGame game) {
+    public DraculaCutscene(Game game) {
         this.game = game;
-        draculaImg = new Texture("dracula_intro.png"); // imagen estática del jefe
+
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false, Player.WORLD_WIDTH, Player.WORLD_HEIGHT);
+
         batch = new SpriteBatch();
+        cutsceneImg = new Texture("draculacutscene.png");
+
         font = new BitmapFont();
-        font.setColor(Color.WHITE);
+        font.getData().setScale(2f);
     }
 
     @Override
     public void render(float delta) {
-        timer += delta;
+        time += delta;
 
+        // Primero limpiamos pantalla
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        // Zoom lento a la imagen
+        float zoom = 1f - Math.min(time * 0.05f, 0.30f);
+        camera.zoom = zoom;
+        camera.update();
+        batch.setProjectionMatrix(camera.combined);
+
         batch.begin();
 
-        batch.draw(draculaImg, 250, 150);
+        // Dibujar fondo (cutscene)
+        batch.draw(cutsceneImg, 0, 0, Player.WORLD_WIDTH, Player.WORLD_HEIGHT);
 
-        font.getData().setScale(1.6f);
-        font.draw(batch, "Dracula:", 400, 500);
-
-        if (timer > 1f) font.draw(batch, "“Mortal insolente...”", 300, 420);
-        if (timer > 3f) font.draw(batch, "“Tu viaje termina aquí.”", 300, 350);
-        if (timer > 5f) font.draw(batch, "Presiona ENTER para luchar", 260, 250);
+        // Texto tarda en aparecer
+        if (time > 2f) {
+            font.draw(batch, "So... you have returned, Alucard...", 200, 200);
+        }
+        if (time > 4f) {
+            font.draw(batch, "Prepare yourself.", 300, 150);
+        }
 
         batch.end();
 
-        if (timer > 5f && Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
-            game.setScreen(new GameScreen(game)); // versión boss fight
+        // Fade-out en los últimos segundos
+        if (time > 6f) fade += delta * 0.5f;
+        if (fade > 1f) fade = 1f;
+
+        if (fade > 0) {
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            batch.begin();
+            batch.setColor(0, 0, 0, fade);
+            batch.draw(cutsceneImg, 0, 0, Player.WORLD_WIDTH, Player.WORLD_HEIGHT);
+            batch.setColor(1, 1, 1, 1);
+            batch.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+        }
+
+        // Termina la cutscene → Level 4 (Drácula Fase 1)
+        if (time > 8f) {
+            game.setScreen(new Level4Screen(game));
         }
     }
 
-    @Override public void dispose() { batch.dispose(); font.dispose(); draculaImg.dispose(); }
     @Override public void show() {}
     @Override public void resize(int w, int h) {}
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}
+    @Override
+    public void dispose() {
+        batch.dispose();
+        cutsceneImg.dispose();
+        font.dispose();
+    }
 }

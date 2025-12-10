@@ -6,44 +6,44 @@ import com.badlogic.gdx.Input;
 public class PlayerController {
 
     private final Player player;
+    private static final float SPEED = 220f;
 
-    public PlayerController(Player p) {
-        this.player = p;
+    public PlayerController(Player player) {
+        this.player = player;
     }
 
-    public void handleInput(float delta) {
+    public void update(float delta) {
 
-        float move = 0;
+        float move = 0f;
 
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) move = -playerSpeed();
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) move = playerSpeed();
+        if (Gdx.input.isKeyPressed(Input.Keys.D)) {
+            move += SPEED * delta;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+            move -= SPEED * delta;
+        }
 
-        player.move(move * delta);
+        player.move(move);
 
+        // Ataque
         if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             player.attack();
         }
 
+        // Cambio de arma
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_1)) {
             player.setWeapon(Player.WeaponType.MELEE);
-            player.unlockMelee();
         }
-
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_2)) {
             player.setWeapon(Player.WeaponType.ESPADA1);
         }
-
         if (Gdx.input.isKeyJustPressed(Input.Keys.NUM_3)) {
             player.setWeapon(Player.WeaponType.ESPADA2);
         }
 
-        if (!Gdx.input.isKeyPressed(Input.Keys.A) &&
-            !Gdx.input.isKeyPressed(Input.Keys.D)) {
+        // Reset animación (debug opcional)
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
             player.resetAnim();
         }
-    }
-
-    private float playerSpeed() {
-        return 250f;
     }
 }

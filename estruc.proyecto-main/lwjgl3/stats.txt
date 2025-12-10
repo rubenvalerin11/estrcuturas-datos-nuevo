@@ -1,7 +1,5 @@
-Partidas Jugadas: 4
-Partidas Ganadas: 0
+Partidas Jugadas: 2
+Partidas Ganadas: 1
 Kills ordenados: 
-3
-1
-1
+0
 0

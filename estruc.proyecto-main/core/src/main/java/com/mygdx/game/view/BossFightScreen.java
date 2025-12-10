@@ -9,17 +9,18 @@ import com.mygdx.game.player.Player;
 import com.mygdx.game.player.PlayerController;
 import com.mygdx.game.controller.GameController;
 
-public class Level3Screen implements Screen {
+public class BossFightScreen implements Screen {
 
     private final CastlevaniaGame game;
     private SpriteBatch batch;
+
     private Texture bg;
 
     private Player player;
     private PlayerController input;
     private GameController controller;
 
-    public Level3Screen(CastlevaniaGame game) {
+    public BossFightScreen(CastlevaniaGame game) {
         this.game = game;
     }
 
@@ -27,7 +28,7 @@ public class Level3Screen implements Screen {
     public void show() {
 
         batch = new SpriteBatch();
-        bg = new Texture("castle_inside.png");
+        bg = new Texture("altar_dracula.png");
 
         player = new Player(90, 80);
         player.enableCombat();
@@ -35,8 +36,8 @@ public class Level3Screen implements Screen {
         input = new PlayerController(player);
         controller = new GameController(player);
 
-        controller.getLevelManager().setLevel(3);
-        controller.spawnMinotauro();
+        controller.getLevelManager().setLevel(5);
+        controller.spawnDraculaPhase2();
     }
 
     @Override
@@ -46,9 +47,8 @@ public class Level3Screen implements Screen {
         player.update(delta);
         controller.update(delta);
 
-        // Si minotauro muere → cutscene
         if (controller.getLevelManager().isBossDefeated()) {
-            game.setScreen(new DraculaCutscene(game));
+            game.setScreen(new WinScreen(game));
             dispose();
         }
 
