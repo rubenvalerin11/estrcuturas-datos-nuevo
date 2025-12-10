@@ -5,37 +5,35 @@ public class LevelManager {
     private int level = 1;
     private int kills = 0;
 
-    // cuántos enemigos hay que matar por nivel (2–3–4)
-    public int getRequiredKills() {
-        switch (level) {
-            case 2: return 8;   // esqueletos
-            case 3: return 10;  // minotauros
-            default: return 0;  // tutorial o jefe
-        }
-    }
+    public int getLevel() { return level; }
+    public int getKills() { return kills; }
 
     public void enemyKilled() {
         kills++;
     }
 
+    public int getRequiredKills() {
+        switch(level) {
+            case 2: return 8;  // pasar a minotauro
+            case 3: return 1;  // matar minotauro
+        }
+        return 0;
+    }
+
     public boolean shouldAdvanceLevel() {
-        if (level == 1) return true;              // tutorial → pasa solo
-        if (level == 2 || level == 3)
-            return kills >= getRequiredKills();
-        return false;                             // 4 = jefe final
+        if (level == 1) return false;
+        return kills >= getRequiredKills();
+    }
+
+    public void gotoLevel2FromWalk() {
+        level = 2;
+        kills = 0;
     }
 
     public void advanceLevel() {
-        if (level < 4) {
-            level++;
-            kills = 0;
-        }
+        level++;
+        kills = 0;
     }
-
-    public int getLevel() { return level; }
-    public int getKills() { return kills; }
-
-    public boolean isBossLevel() { return level == 4; }
 
     public void reset() {
         level = 1;

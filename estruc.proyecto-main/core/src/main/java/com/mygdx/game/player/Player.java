@@ -1,119 +1,142 @@
 package com.mygdx.game.player;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 
 public class Player {
 
+    public enum WeaponType { NONE, MELEE, ESPADA1, ESPADA2 }
+
+    public static final float WORLD_WIDTH = 1280;
+    public static final float WORLD_HEIGHT = 720;
+
     private float x, y;
-    private float speed = 180f;
-    private int vida = 100;
-    private boolean vivo = true;
+    private float speed = 200;
+    private int maxHealth = 100;
+    private int health = 100;
+    private boolean alive = true;
 
+    private boolean meleeUnlocked = false;
+    private WeaponType currentWeapon = WeaponType.NONE;
+
+    // Animación
     private Texture walkSheet;
-    private Animation<TextureRegion> walkAnim;
-    private float stateTime = 0f;
+    private TextureRegion[] frames;
+    private int frameCount = 14;
+    private float animTimer = 0;
+    private TextureRegion currentFrame;
 
-    private float width;
-    private float height;
-
+    // Ataque
     private boolean attacking = false;
     private float attackTimer = 0f;
-
-    // tamaño del mundo (ajusta si tu viewport es otro)
-    public static final float WORLD_WIDTH = 960;
-    public static final float WORLD_HEIGHT = 640;
-    private static final float GROUND_Y = 80f;
+    private Rectangle attackBounds = new Rectangle(0,0,0,0);
 
     public Player(float x, float y) {
         this.x = x;
         this.y = y;
 
         walkSheet = new Texture("alucarcaminando.png");
-        int FRAME_COLS = 14;
-        int fw = walkSheet.getWidth() / FRAME_COLS;
-        int fh = walkSheet.getHeight();
 
-        TextureRegion[][] tmp = TextureRegion.split(walkSheet, fw, fh);
-        TextureRegion[] frames = new TextureRegion[FRAME_COLS];
-        for (int i = 0; i < FRAME_COLS; i++) frames[i] = tmp[0][i];
+        int frameW = walkSheet.getWidth() / frameCount;
+        int frameH = walkSheet.getHeight();
+        TextureRegion[][] tmp = TextureRegion.split(walkSheet, frameW, frameH);
 
-        walkAnim = new Animation<>(0.07f, frames);
-        walkAnim.setPlayMode(Animation.PlayMode.LOOP);
+        frames = new TextureRegion[frameCount];
+        for(int i=0;i<frameCount;i++)
+            frames[i] = tmp[0][i];
 
-        width = fw * 1.4f;
-        height = fh * 1.4f;
+        currentFrame = frames[0];
     }
 
+    // ---------------- GETTERS ----------------
+    public float getX() { return x; }
+    public float getY() { return y; }
+    public Rectangle getBounds() { return new Rectangle(x, y, currentFrame.getRegionWidth(), currentFrame.getRegionHeight()); }
+    public Rectangle getAttackBounds() { return attackBounds; }
+    public float getHealthPercent() { return (float)health / maxHealth; }
+    public boolean isAlive() { return alive; }
+    public String getWeaponName() { return currentWeapon.toString(); }
+
+    // ---------------- MOVIMIENTO ----------------
+    public void move(float dx) {
+        x += dx;
+
+        if (x < 0) x = 0;
+        if (x > WORLD_WIDTH - currentFrame.getRegionWidth())
+            x = WORLD_WIDTH - currentFrame.getRegionWidth();
+    }
+
+    public void setPosition(float px, float py) {
+        this.x = px;
+        this.y = py;
+    }
+
+    public void resetAnim() {
+        animTimer = 0;
+        currentFrame = frames[0];
+    }
+
+    // ---------------- ARMAS ----------------
+    public void unlockMelee() { meleeUnlocked = true; }
+
+    public void setWeapon(WeaponType type) {
+        this.currentWeapon = type;
+    }
+
+    // ---------------- ATAQUE ----------------
+    public void attack() {
+        if (!meleeUnlocked) return;
+
+        attacking = true;
+        attackTimer = 0.2f; // ventana pequeña
+    }
+
+    // ---------------- UPDATE ----------------
     public void update(float delta) {
-        if (!vivo) return;
+        if (!alive) return;
 
-        stateTime += delta;
-        float dx = 0, dy = 0;
+        animTimer += delta * 10;
+        currentFrame = frames[(int)(animTimer % frameCount)];
 
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) dx = -1;
-        if (Gdx.input.isKeyPressed(Input.Keys.D)) dx = 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) dy = 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) dy = -1;
-
-        float len = (float)Math.sqrt(dx*dx + dy*dy);
-        if (len != 0) { dx /= len; dy /= len; }
-
-        x += dx * speed * delta;
-        y += dy * speed * delta;
-
-        // ataque placeholder con J
-        if (Gdx.input.isKeyJustPressed(Input.Keys.J)) {
-            attacking = true;
-            attackTimer = 0.2f;
-        }
         if (attacking) {
             attackTimer -= delta;
-            if (attackTimer <= 0) attacking = false;
+
+            attackBounds.set(x + currentFrame.getRegionWidth(), y + 20, 40, 20);
+
+            if (attackTimer <= 0) {
+                attacking = false;
+                attackBounds.set(0,0,0,0);
+            }
         }
+    }
 
-        // límites pantalla
-        if (x < 0) x = 0;
-        if (y < GROUND_Y) y = GROUND_Y;
-        if (x + width > WORLD_WIDTH) x = WORLD_WIDTH - width;
-        if (y + height > WORLD_HEIGHT) y = WORLD_HEIGHT - height;
+    // ---------------- DAÑO ----------------
+    public void receiveDamage(int dmg) {
+        if (!alive) return;
+        health -= dmg;
+        if (health <= 0) {
+            health = 0;
+            alive = false;
+        }
+    }
 
-        if (vida <= 0) vivo = false;
+    public void reset() {
+        health = maxHealth;
+        alive = true;
+        x = 100;
+        y = 80;
+        currentWeapon = WeaponType.NONE;
+        meleeUnlocked = false;
     }
 
     public void render(SpriteBatch batch) {
-        TextureRegion frame = walkAnim.getKeyFrame(stateTime);
-        batch.draw(frame, x, y, width, height);
+        batch.draw(currentFrame, x, y);
     }
 
-    public Rectangle getBounds() {
-        return new Rectangle(x + 15, y + 10, width - 30, height - 15);
-    }
-
-    public Rectangle getAttackBounds() {
-        if (!attacking) return new Rectangle(0,0,0,0);
-        return new Rectangle(x + width, y + height * 0.25f, 40, height * 0.5f);
-    }
-
-    public void receiveDamage(int d) {
-        vida -= d;
-        if (vida <= 0) vivo = false;
-    }
-
-    public boolean isAlive() { return vivo; }
-    public float getX() { return x; }
-    public float getY() { return y; }
-    public float getHealthPercent() { return vida / 100f; }
-
-    public void reset() {
-        vida = 100;
-        vivo = true;
-        x = 100;
-        y = GROUND_Y;
+    public void dispose() {
+        walkSheet.dispose();
     }
 }

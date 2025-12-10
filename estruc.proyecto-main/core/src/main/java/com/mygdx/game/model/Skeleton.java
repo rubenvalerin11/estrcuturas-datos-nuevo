@@ -7,66 +7,65 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 public class Skeleton extends Enemy {
 
-    private Texture walkSheet, deathSheet;
-    private Animation<TextureRegion> walkAnim, deathAnim;
-    private float stateTime = 0f;
+    private Texture walkSheet;
+    private Texture deathSheet;
+
+    private Animation<TextureRegion> walkAnim;
+    private Animation<TextureRegion> deathAnim;
+
+    private TextureRegion currentFrame;
+
+    private float animTimer = 0f;
     private boolean dying = false;
 
     public Skeleton(float x, float y) {
         super(x, y, 60f, 40, 8);
 
+        // =======================
+        // CARGA DE SPRITES
+        // =======================
         walkSheet = new Texture("eskeletocaminando.png");
-        deathSheet = new Texture("esqueletomuriendo.png");
+        deathSheet = new Texture("eskeletomuriendo.png");
 
-        int FW = walkSheet.getWidth() / 5;
-        int FH = walkSheet.getHeight();
+        walkAnim = createAnimation(walkSheet, 4, 0.12f);
+        deathAnim = createAnimation(deathSheet, 6, 0.10f);
 
-        TextureRegion[][] tmp = TextureRegion.split(walkSheet, FW, FH);
-        TextureRegion[] frames = new TextureRegion[5];
-        for (int i = 0; i < 5; i++) frames[i] = tmp[0][i];
+        currentFrame = walkAnim.getKeyFrame(0);
+        width = currentFrame.getRegionWidth() * 1.4f;
+        height = currentFrame.getRegionHeight() * 1.4f;
+    }
 
-        walkAnim = new Animation<TextureRegion>(0.12f, frames);
-        walkAnim.setPlayMode(Animation.PlayMode.LOOP);
+    private Animation<TextureRegion> createAnimation(Texture sheet, int frameCount, float speed) {
+        int frameW = sheet.getWidth() / frameCount;
+        int frameH = sheet.getHeight();
 
-        // muerte
-        TextureRegion[][] dt = TextureRegion.split(deathSheet, FW, FH);
-        TextureRegion[] df = new TextureRegion[5];
-        for (int i = 0; i < 5; i++) df[i] = dt[0][i];
+        TextureRegion[][] tmp = TextureRegion.split(sheet, frameW, frameH);
+        TextureRegion[] frames = new TextureRegion[frameCount];
+        for (int i = 0; i < frameCount; i++) frames[i] = tmp[0][i];
 
-        deathAnim = new Animation<TextureRegion>(0.10f, df);
-        deathAnim.setPlayMode(Animation.PlayMode.NORMAL);
-
-        width = FW * 1.4f;
-        height = FH * 1.4f;
+        return new Animation<>(speed, frames);
     }
 
     @Override
     public void update(float delta, float playerX, float playerY) {
-        stateTime += delta;
+        animTimer += delta;
 
         if (!vivo) {
             dying = true;
+            currentFrame = deathAnim.getKeyFrame(animTimer, false);
             return;
         }
 
-        float dx = playerX - x;
-        float dy = playerY - y;
-        float len = (float) Math.sqrt(dx * dx + dy * dy);
+        // Movimiento simple hacia el jugador
+        float dx = (playerX > x) ? 1 : -1;
+        x += dx * speed * delta;
 
-        if (len > 1) {
-            dx /= len;
-            dy /= len;
-            x += dx * speed * delta;
-            y += dy * speed * delta;
-        }
+        currentFrame = walkAnim.getKeyFrame(animTimer, true);
     }
 
     @Override
     public void render(SpriteBatch batch) {
-        TextureRegion frame =
-            dying ? deathAnim.getKeyFrame(stateTime) : walkAnim.getKeyFrame(stateTime);
-
-        batch.draw(frame, x, y, width, height);
+        batch.draw(currentFrame, x, y, width, height);
     }
 
     @Override

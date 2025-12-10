@@ -7,137 +7,111 @@ import com.mygdx.game.player.Player;
 
 public class GameController {
 
-    private static class EnemyNode {
-        Enemy enemy;
-        EnemyNode next;
-        EnemyNode(Enemy enemy) { this.enemy = enemy; }
+    private static class Node {
+        Enemy e;
+        Node next;
+        Node(Enemy e){ this.e=e; }
     }
 
-    private EnemyNode head;
-    private int enemyCount;
+    private Node head;
+    private int count;
 
     private final Player player;
-    private final LevelManager levelManager = new LevelManager();
+    private LevelManager lm;
 
-    private float spawnTimer = 0f;
-    private float spawnInterval = 2f;
+    private BossDracula bossRef;
 
-    private boolean bossSpawned = false;
-
-    public GameController(Player player) {
-        this.player = player;
+    public GameController(Player p) {
+        this.player = p;
+        this.lm = new LevelManager();
     }
 
-    public LevelManager getLevelManager() { return levelManager; }
+    public LevelManager getLevelManager() { return lm; }
 
-    private void addEnemy(Enemy enemy) {
-        EnemyNode n = new EnemyNode(enemy);
+    public void onLevelChanged() {
+        clear();
+        bossRef = null;
+
+        switch (lm.getLevel()) {
+            case 1: break;
+            case 2: break; // esqueletos dinámicos
+            case 3:
+                add(new Minotauro(700, 80));
+                break;
+            case 4:
+                bossRef = new BossDracula(600, 80);
+                add(bossRef);
+                break;
+        }
+    }
+
+    private void add(Enemy e) {
+        Node n = new Node(e);
         n.next = head;
         head = n;
-        enemyCount++;
+        count++;
     }
 
-    private void clearEnemies() {
-        EnemyNode c = head;
+    private void clear() {
+        Node c = head;
         while (c != null) {
-            c.enemy.dispose();
+            c.e.dispose();
             c = c.next;
         }
         head = null;
-        enemyCount = 0;
+        count = 0;
     }
 
-    private boolean hasNoEnemies() { return enemyCount == 0; }
+    public float getBossHealthPercent() {
+        if (bossRef == null) return 0;
+        return (float) bossRef.getVida() / bossRef.getVidaMaxima();
+    }
 
     public void update(float delta) {
-        if (!player.isAlive()) return;
 
-        spawnTimer += delta;
+        int lvl = lm.getLevel();
 
-        int lvl = levelManager.getLevel();
-
-        if (lvl == 1) {
-            // tutorial → no spawnea nada
-        } else if (lvl == 2 || lvl == 3) {
-            if (spawnTimer >= spawnInterval) {
-                spawnTimer = 0f;
-                spawnByLevel();
-            }
-        } else if (lvl == 4) {
-            if (!bossSpawned) {
-                clearEnemies();
-                addEnemy(new BossDracula(500, 200));
-                bossSpawned = true;
-            }
+        if (lvl == 2) {
+            if (Math.random() < 0.02) add(new Skeleton(1000,80));
         }
 
-        EnemyNode curr = head;
-        EnemyNode prev = null;
+        Node c = head;
+        Node prev = null;
 
-        while (curr != null) {
-            Enemy e = curr.enemy;
+        while (c != null) {
+            Enemy e = c.e;
             e.update(delta, player.getX(), player.getY());
 
             if (!e.estaVivo()) {
-                levelManager.enemyKilled();
-                enemyCount--;
-                if (prev == null) head = curr.next;
-                else prev.next = curr.next;
-                curr = (prev == null) ? head : prev.next;
+                lm.enemyKilled();
+                count--;
+                if (prev == null) head = c.next;
+                else prev.next = c.next;
+
+                c = (prev == null) ? head : prev.next;
                 continue;
             }
 
             Rectangle rP = player.getBounds();
             Rectangle rE = e.getBounds();
 
-            if (rP.overlaps(rE)) {
-                player.receiveDamage(e.getDano());
-            }
+            if (rP.overlaps(rE)) player.receiveDamage(e.getDano());
 
-            Rectangle rAtk = player.getAttackBounds();
-            if (rAtk.width > 0 && rAtk.overlaps(rE)) {
-                e.recibirDano(20);
-            }
+            Rectangle atk = player.getAttackBounds();
+            if (atk.width > 0 && atk.overlaps(rE)) e.recibirDano(20);
 
-            prev = curr;
-            curr = curr.next;
-        }
-    }
-
-    private void spawnByLevel() {
-        float x = (float)(Math.random() * 700f + 50f);
-        float y = 80f; // en el suelo
-
-        switch (levelManager.getLevel()) {
-            case 2:
-                addEnemy(new Skeleton(x, y));
-                break;
-            case 3:
-                addEnemy(new Minotauro(x, y));
-                break;
-        }
-    }
-
-    public boolean isBossDefeated() {
-        return levelManager.getLevel() == 4 && bossSpawned && hasNoEnemies();
-    }
-
-    public void render(SpriteBatch batch) {
-        EnemyNode c = head;
-        while (c != null) {
-            c.enemy.render(batch);
+            prev = c;
             c = c.next;
         }
     }
 
-    public void resetGame() {
-        clearEnemies();
-        levelManager.reset();
-        bossSpawned = false;
-        player.reset();
+    public void render(SpriteBatch batch) {
+        Node c = head;
+        while (c != null) {
+            c.e.render(batch);
+            c = c.next;
+        }
     }
 
-    public void dispose() {
-        clearEnemies();
-    }
+    public void dispose() { clear(); }
 }
